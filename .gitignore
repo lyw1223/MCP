@@ -8,7 +8,7 @@ logs/
 *.class
 
 # 환경 설정 파일 제외
-*.env
+.env
 
 # JSON 파일 제외 (mcp.json 제외)
 *.json
