@@ -1,0 +1,46 @@
+/* 전체 배경색 및 폰트 */
+.stApp {
+    background: linear-gradient(135deg, #f8fafc 0%, #e0e7ef 100%);
+    font-family: 'Segoe UI', 'Malgun Gothic', Arial, sans-serif;
+}
+
+/* 채팅 메시지 버블 스타일 */
+[data-testid="stChatMessage"] {
+    border-radius: 16px;
+    padding: 16px;
+    margin-bottom: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+
+/* 사용자 메시지 */
+[data-testid="stChatMessage"]:has(.stMarkdown) {
+    background: #e3f2fd;
+    color: #222;
+    align-self: flex-end;
+}
+
+/* 어시스턴트 메시지 */
+[data-testid="stChatMessage"]:not(:has(.stMarkdown)) {
+    background: #fff;
+    color: #222;
+    align-self: flex-start;
+}
+
+/* 타이틀 스타일 */
+h1, .stTitle {
+    color: #2b3a55;
+    font-weight: 700;
+    letter-spacing: 1px;
+}
+
+/* 사이드바 스타일 */
+.stSidebar {
+    background: #f1f5fa;
+}
+
+/* 입력창 스타일 */
+.stChatInputContainer {
+    background: #f8fafc;
+    border-radius: 12px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.03);
+} 
