@@ -1,0 +1,15 @@
+# 로그 파일 제외
+logs/
+*.log
+
+# 빌드 결과물 제외
+/build/
+*.o
+*.class
+
+# 환경 설정 파일 제외
+*.env
+
+# JSON 파일 제외 (mcp.json 제외)
+*.json
+!mcp.json
