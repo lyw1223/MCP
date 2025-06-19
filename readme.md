@@ -34,7 +34,7 @@ MCP/
 ├── mcp_scripts.py     # 스크립트 관련 파일
 ├── cookies.py         # 쿠키 처리 모듈
 ├── requirements.txt   # 의존성 패키지 목록
-└── README.md         # 프로젝트 문서
+└── README.md          # 프로젝트 문서
 ```
 
 ## mcp.json 설정 

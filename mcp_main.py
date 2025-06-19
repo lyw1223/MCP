@@ -58,39 +58,40 @@ async def setup_agent():
 
 # 메시지 처리
 async def process_user_message():
-    agent,mcp_servers = await setup_agent()
-    messages = st.session_state.chat_history
+    try:
+        agent, mcp_servers = await setup_agent()
+        messages = st.session_state.chat_history
 
-    result = Runner.run_streamed(agent, input=messages)
+        result = Runner.run_streamed(agent, input=messages)
 
-    response_text = ""
-    placeholder = st.empty()
+        response_text = ""
+        placeholder = st.empty()
 
-    async for event in result.stream_events():
-        # LLM 응답 토큰 스트리밍
-        if event.type == "raw_response_event" and isinstance(event.data, ResponseTextDeltaEvent):
-            response_text += event.data.delta or ""
-            with placeholder.container():
-                with st.chat_message("assistant"):
-                    st.markdown(response_text)
+        async for event in result.stream_events():
+            # LLM 응답 토큰 스트리밍
+            if event.type == "raw_response_event" and isinstance(event.data, ResponseTextDeltaEvent):
+                response_text += event.data.delta or ""
+                with placeholder.container():
+                    with st.chat_message("assistant"):
+                        st.markdown(response_text)
 
+            # 도구 이벤트와 메시지 완료 처리
+            elif event.type == "run_item_stream_event":
+                item = event.item
 
-        # 도구 이벤트와 메시지 완료 처리
-        elif event.type == "run_item_stream_event":
-            item = event.item
+                if item.type == "tool_call_item":
+                    tool_name = item.raw_item.name
+                    st.toast(f"🛠 도구 활용: `{tool_name}`")
 
-            if item.type == "tool_call_item":
-                tool_name = item.raw_item.name
-                st.toast(f"🛠 도구 활용: `{tool_name}`")
-
-
-    st.session_state.chat_history.append({
-        "role": "assistant",
-        "content": response_text
-    })
-    # 명시적 종료 (streamlit에서 비동기 처리 오류 방지)
-    for server in mcp_servers:
-        await server.__aexit__(None, None, None)
+        st.session_state.chat_history.append({
+            "role": "assistant",
+            "content": response_text
+        })
+        # 명시적 종료 (streamlit에서 비동기 처리 오류 방지)
+        for server in mcp_servers:
+            await server.__aexit__(None, None, None)
+    except asyncio.CancelledError:
+        pass
 
 # Streamlit UI 메인
 def main():        
