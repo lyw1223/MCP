@@ -9,6 +9,7 @@ import os
 import undetected_chromedriver as uc
 from datetime import datetime
 import json
+
 load_dotenv()
 mcp = FastMCP("kss_agent_server")
 KSS_SERVER = os.getenv("KSS_SERVER")
@@ -56,8 +57,9 @@ def kss_comment_write(person_id: str, txt: str, date: str = datetime.now().strft
     except Exception as e:
         return {'error': f'요청 중 오류 발생: {str(e)}'}
     
-
-def kss_account_query(person_id: str) -> dict[str, Any]:
+### Tool 2 : KSS 어카운트 조회
+@mcp.tool()
+def kss_account_query(person_id: str) -> dict[str, Any]:    
     """KSS Account을 조회합니다.         
     Args:
         person_id: A142340 형식) #앞에 A가 붙어야함
@@ -73,8 +75,10 @@ def kss_account_query(person_id: str) -> dict[str, Any]:
     else:
         return {'error': f'요청 중 오류 발생: {response.status_code}'}
 
+
+
 if __name__ == "__main__":   
     print("Starting MCP server...")
     mcp.run()
-    # kss_comment_write(person_id='A142233', txt='test', date='20250618', wtime='00:00')
+    kss_comment_write(person_id='A142233', txt='test', date='20250618', wtime='00:00')
     # kss_account_query(person_id='A142233')

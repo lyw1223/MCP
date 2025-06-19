@@ -1,6 +1,6 @@
+import streamlit as st
 import sys
 import asyncio
-import streamlit as st
 import json
 from openai.types.responses import ResponseTextDeltaEvent
 from agents import Agent, Runner
@@ -8,10 +8,9 @@ from agents.mcp import MCPServerStdio
 from dotenv import load_dotenv
 import os
 import openai
-import time
-import undetected_chromedriver as uc
 from selenium.webdriver.common.by import By
 from dotenv import load_dotenv
+
 load_dotenv()
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
