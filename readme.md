@@ -20,6 +20,7 @@ python -m venv venv
 pip install -r requirements.txt
 ```
 # 실행 예시 코드
+'''
 streamlit run mcp_main.py
 ```
 
