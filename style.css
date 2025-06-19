@@ -1,3 +1,128 @@
+/* 전체 페이지 스타일 */
+.stApp {
+    background: linear-gradient(135deg, #f6f9fc 0%, #eef2f7 100%);
+    font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, 'Helvetica Neue', 'Segoe UI', 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif;
+}
+
+/* 제목 스타일 */
+.st-emotion-cache-1629p8f h1 {
+    color: #1a237e;
+    font-weight: 600;
+    letter-spacing: -0.5px;
+    margin-bottom: 1rem;
+}
+
+/* 구분선 스타일 */
+.st-emotion-cache-1v0mbdj {
+    border-color: rgba(49, 51, 63, 0.15);
+    margin: 2rem 0;
+}
+
+/* 채팅 메시지 컨테이너 */
+.st-emotion-cache-1vbkxwb {
+    border-radius: 12px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+    background-color: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(10px);
+}
+
+/* 사용자 메시지 */
+.st-emotion-cache-1vbkxwb[data-testid="stChatMessage"] {
+    background: #f7f7fa;
+    border: 1px solid #e0e0e0;
+    color: #222;
+    font-weight: 500;
+    padding: 1rem;
+    margin: 0.5rem 0;
+}
+
+/* AI 응답 메시지 */
+.st-emotion-cache-1vbkxwb[data-testid="stChatMessage"][data-testid="assistant"] {
+    background: #e3edfa;
+    border: 1px solid #b3c6e6;
+    color: #1a237e;
+    font-weight: 500;
+    box-shadow: 0 2px 8px rgba(26, 35, 126, 0.07);
+}
+
+/* 입력 필드 */
+.st-emotion-cache-1x8cf1d {
+    background-color: rgba(255, 255, 255, 0.9);
+    border-radius: 8px;
+    border: 2px solid #e9ecef;
+    transition: all 0.2s ease;
+}
+
+.st-emotion-cache-1x8cf1d:focus {
+    border-color: #1a237e;
+    box-shadow: 0 0 0 2px rgba(26, 35, 126, 0.1);
+}
+
+/* 버튼 스타일 */
+.stButton > button {
+    background: linear-gradient(135deg, #1a237e 0%, #283593 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 0.5rem 1rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.stButton > button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(26, 35, 126, 0.15);
+}
+
+/* 캡션 스타일 */
+.st-emotion-cache-16idsys p {
+    color: #666;
+    font-size: 0.9rem;
+    line-height: 1.5;
+}
+
+/* 알림 메시지 */
+.stAlert {
+    border-radius: 8px;
+    border: none;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+}
+
+/* 스크롤바 스타일 */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+
+/* 토스트 메시지 */
+.stToast {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    padding: 0.75rem 1rem;
+}
+
+/* 로딩 스피너 */
+.stSpinner {
+    border-color: #1a237e;
+}
+
 /* 전체 배경색 및 폰트 */
 .stApp {
     font-family: 'Segoe UI', 'Malgun Gothic', Arial, sans-serif;
@@ -72,4 +197,48 @@ html[data-theme="light"] .stChatInputContainer {
 html[data-theme="dark"] .stChatInputContainer {
     background: #23272f;
     color: #f5f5f5;
+}
+
+@media (prefers-color-scheme: light) {
+    .stApp {
+        background: linear-gradient(135deg, #f6f9fc 0%, #eef2f7 100%);
+    }
+    .st-emotion-cache-1vbkxwb[data-testid="stChatMessage"] {
+        background: #f7f7fa;
+        border: 1px solid #e0e0e0;
+        color: #222;
+        font-weight: 500;
+    }
+    .st-emotion-cache-1vbkxwb[data-testid="stChatMessage"][data-testid="assistant"] {
+        background: #e3edfa;
+        border: 1px solid #b3c6e6;
+        color: #1a237e;
+        font-weight: 500;
+        box-shadow: 0 2px 8px rgba(26, 35, 126, 0.07);
+    }
+    .st-emotion-cache-1629p8f h1, .st-emotion-cache-1629p8f h2 {
+        color: #1a237e;
+    }
+}
+
+@media (prefers-color-scheme: dark) {
+    .stApp {
+        background: linear-gradient(135deg, #181c22 0%, #232526 100%);
+    }
+    .st-emotion-cache-1vbkxwb[data-testid="stChatMessage"] {
+        background: #23272f;
+        border: 1px solid #44474f;
+        color: #f1f1f1;
+        font-weight: 500;
+    }
+    .st-emotion-cache-1vbkxwb[data-testid="stChatMessage"][data-testid="assistant"] {
+        background: #26334d;
+        border: 1px solid #3a4a6b;
+        color: #e3edfa;
+        font-weight: 500;
+        box-shadow: 0 2px 8px rgba(26, 35, 126, 0.15);
+    }
+    .st-emotion-cache-1629p8f h1, .st-emotion-cache-1629p8f h2 {
+        color: #e3edfa;
+    }
 } 

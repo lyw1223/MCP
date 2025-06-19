@@ -10,6 +10,7 @@ import os
 import openai
 from selenium.webdriver.common.by import By
 from dotenv import load_dotenv
+import base64
 
 load_dotenv()
 openai.api_key = os.getenv("OPENAI_API_KEY")
@@ -67,7 +68,7 @@ async def process_user_message():
         response_text = ""
         placeholder = st.empty()
 
-        async for event in result.stream_events():
+        async for event in result.stream_events():           
             # LLM 응답 토큰 스트리밍
             if event.type == "raw_response_event" and isinstance(event.data, ResponseTextDeltaEvent):
                 response_text += event.data.delta or ""
@@ -82,6 +83,7 @@ async def process_user_message():
                 if item.type == "tool_call_item":
                     tool_name = item.raw_item.name
                     st.toast(f"🛠 도구 활용: `{tool_name}`")
+          
 
         st.session_state.chat_history.append({
             "role": "assistant",
@@ -95,19 +97,24 @@ async def process_user_message():
 
 # Streamlit UI 메인
 def main():        
-    st.set_page_config(page_title="KSS 에이전트", page_icon="🔷")
+    st.set_page_config(page_icon="🔷")
 
     # style.css 적용
     with open("style.css",encoding="utf-8") as f:
         st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
+
+    # 로고 표시
+    st.markdown(
+        f'<div style="text-align: left;"><img src="data:image/png;base64,{base64.b64encode(open("surplusglobal_logo.png", "rb").read()).decode()}" width="300"></div>',
+        unsafe_allow_html=True
+    )        
 
     if "chat_history" not in st.session_state:
         st.session_state.chat_history = []
 
     
     st.title(f"{os.getenv('KSS_ID').upper()}님, 안녕하세요!")
-    st.divider()
-    st.title("🔷 KSS 에이전트")
+    st.divider()   
     st.caption(f"Account 생성, 업데이트, 삭제, 조회 등 요청해주세요! - AI Model: ({os.getenv('OPENAI_MODEL')})")
     if os.getenv('KSS_SERVER') == '1':
         st.caption("⚠️ 주의: 메인 서버에서 실행 중입니다.")
@@ -120,15 +127,19 @@ def main():
 
     # 사용자 입력 처리
     user_input = st.chat_input("오늘 어떤 도움을 드릴까요?")
+
     if user_input:
         st.session_state.chat_history.append({"role": "user", "content": user_input})
         with st.chat_message("user"):
             st.markdown(user_input)
-
         # 비동기 응답 처리
         with st.spinner("AI가 답변을 작성 중입니다..."):
-            asyncio.run(process_user_message())
-        
+            try:
+                asyncio.run(process_user_message())
+            except openai.APIError as e:
+                st.error(f"오류 발생: {e}")
+            except Exception as e:
+                st.error(f"오류 발생: {e}")
 
 if __name__ == "__main__":
     main()
