@@ -1,10 +1,19 @@
 {
-    "mcpServers": {
-      "mcp-kss": {
-        "command": "C:\\Users\\AsherLim-230703\\Desktop\\mcp\\venv\\Scripts\\python.exe",
-        "args": [
-          "C:\\Users\\AsherLim-230703\\Desktop\\mcp\\mcp_scripts.py"
-        ]
-      }
+  "mcpServers": {
+    "mcp-kss": {
+      "command": "C:\\Users\\AsherLim-230703\\Documents\\GitHub\\MCP\\python.exe",
+      "args": [
+        "C:\\Users\\AsherLim-230703\\Documents\\GitHub\\MCP\\mcp_scripts.py"
+      ]
+    },
+    "filesystem": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-filesystem",
+        "C:\\Users\\AsherLim-230703\\Desktop\\AI_TABLE"
+      ]
     }
+  }
 }
+

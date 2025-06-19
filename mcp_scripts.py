@@ -74,7 +74,7 @@ def kss_account_query(person_id: str) -> dict[str, Any]:
         return {'error': f'요청 중 오류 발생: {response.status_code}'}
 
 if __name__ == "__main__":   
-    # print("Starting MCP server...")
-    # mcp.run()
+    print("Starting MCP server...")
+    mcp.run()
     # kss_comment_write(person_id='A142233', txt='test', date='20250618', wtime='00:00')
-    kss_account_query(person_id='A142233')
+    # kss_account_query(person_id='A142233')

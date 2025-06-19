@@ -3,7 +3,6 @@ Account 조회, 요약, 업데이트 기능을 갖춘 KSS 에이전트를 MCP로
 
 
 # 폴더 구조 및 기능 설명
-MCP_Project
 - .env             # KSS 계정 설정(보안.env파일)
 - mcp_main.py      # MCP 서버 실행 → streamlit run mcp_main.py
 - mcp_scripts.py   # MCP 서버 기능설정
@@ -28,21 +27,33 @@ MCP_Project
 - OPENAI_MODEL= 사용모델_입력
 - MCP_DELAY = MCP 작업 대기시간설정
 
-4. MCP 경로 구성 / 서버 실행에 필요한 **Python 실행 파일 경로**와 **MCP 서버(.py) 스크립트 경로**를 JSON 설정에 입력해야 합니다.
+4. mcp.json 설정 
+서버 실행에 필요한 **Python 실행 파일 경로**와 **MCP 서버(.py) 스크립트 경로**를 JSON 설정에 입력해야 합니다.
 (예: 프로젝트 폴더가 `C:\projects\test\python_mcp_agent`인 경우)
 
 > **주의:** Windows에서는 JSON 문법상 `\` 대신 `\\` (역슬래시 두 번)을 사용해야 합니다.
 ```json
 {
   "mcpServers": {
-    "mcp-main": {
-      "command": "C:\\projects\\test\\python_mcp_agent\\venv\\Scripts\\python.exe",
+    
+    "mcp-kss": {
+      "command": "C:\\Users\\AsherLim-230703\\Documents\\GitHub\\MCP\\venv\\Scripts\\python.exe",
       "args": [
-        "C:\\projects\\test\\python_mcp_agent\\2_mcp_server.py"
+        "C:\\Users\\AsherLim-230703\\Documents\\GitHub\\MCP\\mcp_scripts.py"
       ]
-    }
+    }, 
+       
+    "filesystem": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-filesystem",
+        "C:\\Users\\AsherLim-230703\\Desktop\\AI_TABLE"
+      ]
+    }   
   }
 }
+
 ```
 
 
