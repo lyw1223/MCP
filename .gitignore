@@ -10,9 +10,8 @@ logs/
 # 환경 설정 파일 제외
 .env
 
-# JSON 파일 제외 (mcp.json 제외)
+# JSON 파일 제외 
 *.json
-!mcp.json
 
 # 가상환경 제외
 venv/

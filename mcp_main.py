@@ -8,8 +8,6 @@ from agents.mcp import MCPServerStdio
 from dotenv import load_dotenv
 import os
 import openai
-from selenium.webdriver.common.by import By
-from dotenv import load_dotenv
 import base64
 
 load_dotenv()
