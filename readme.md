@@ -23,18 +23,18 @@ pip install -r requirements.txt
 streamlit run mcp_main.py
 ```
 
-## 프로젝트 구조
+# 프로젝트 구조
 ```
 MCP/
-├── mcp_main.py        # 메인 실행 파일
-├── mcp_scripts.py     # 스크립트 관련 파일
-├── cookies.py         # 쿠키 처리 모듈
-├── requirements.txt   # 의존성 패키지 목록
-└── README.md         # 프로젝트 문서
+-mcp_main.py        # 메인 실행 파일
+-mcp_scripts.py     # 스크립트 관련 파일
+-cookies.py         # 쿠키 처리 모듈
+-requirements.txt   # 의존성 패키지 목록
+-README.md          # 프로젝트 문서
 ```
 
 
-## mcp.json 설정 
+# mcp.json 설정 
 서버 실행에 필요한 **Python 실행 파일 경로**와 **MCP 서버(.py) 스크립트 경로**를 JSON 설정에 입력해야 합니다.
 (예: 프로젝트 폴더가 `C:\projects\test\python_mcp_agent`인 경우)
 
