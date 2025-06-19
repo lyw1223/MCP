@@ -31,13 +31,13 @@ class KSS_Request():
                    
 ### Tool 1 : KSS 계정 코멘트 작성
 @mcp.tool()
-def kss_comment_write(person_id: str, txt: str, date: str = datetime.now().strftime("%Y%m%d"), wtime: str = '00:00') -> dict[str, Any]:
+def kss_comment_write(person_id: str, txt: str, date: str = datetime.now().strftime("%Y%m%d"), wtime: str = datetime.now().strftime('%H:%M')) -> dict[str, Any]:
     """KSS Account에 코멘트를 작성합니다.         
     Args:
         person_id: A142340 형식) #앞에 A가 붙어야함
         txt: 작성할 코멘트 내용
-        date: 코멘트 날짜 (yyyymmdd 형식, 기본값:오늘 날짜)
-        wtime: 작성 시간 (HH:MM 형식, 기본값 00:00)
+        date: 코멘트 날짜 (yyyymmdd 형식, 기본값:현재 날짜)
+        wtime: 작성 시간 (HH:MM 형식, 기본값:현재 시간)
     """      
     kss_request = KSS_Request()
     data = f'accid={person_id}&newsyn=N&gbn=I&comment={txt}&validdt={date} {wtime}&cmtDataSrcVal={person_id}&cmtDataSrcType=PERSON_ID'
@@ -80,5 +80,5 @@ def kss_account_query(person_id: str) -> dict[str, Any]:
 if __name__ == "__main__":   
     print("Starting MCP server...")
     mcp.run()
-    kss_comment_write(person_id='A142233', txt='test', date='20250618', wtime='00:00')
+    # kss_comment_write(person_id='A142233', txt='test', date='20250618', wtime='00:00')
     # kss_account_query(person_id='A142233')

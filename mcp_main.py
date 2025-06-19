@@ -104,15 +104,22 @@ def main():
     if "chat_history" not in st.session_state:
         st.session_state.chat_history = []
 
+    
+    st.title(f"{os.getenv('KSS_ID').upper()}님, 안녕하세요!")
+    st.divider()
     st.title("🔷 KSS 에이전트")
     st.caption(f"Account 생성, 업데이트, 삭제, 조회 등 요청해주세요! - AI Model: ({os.getenv('OPENAI_MODEL')})")
+    if os.getenv('KSS_SERVER') == '1':
+        st.caption("⚠️ 주의: 메인 서버에서 실행 중입니다.")
+    elif os.getenv('KSS_SERVER') == '2':
+        st.caption("ℹ️ 알림: 개발 서버에서 실행 중입니다. 속도가 느릴 수 있습니다.")
 
     for m in st.session_state.chat_history:
         with st.chat_message(m["role"]):
             st.markdown(m["content"])
 
     # 사용자 입력 처리
-    user_input = st.chat_input("대화를 해주세요")
+    user_input = st.chat_input("오늘 어떤 도움을 드릴까요?")
     if user_input:
         st.session_state.chat_history.append({"role": "user", "content": user_input})
         with st.chat_message("user"):
