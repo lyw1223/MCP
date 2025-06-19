@@ -1,8 +1,6 @@
 ## MCP (KSS MCP Server)
 Account 조회, 요약, 업데이트 기능을 갖춘 KSS 에이전트를 MCP로 구현
 
-## 소개
-Account 조회, 요약, 업데이트 기능을 갖춘 KSS 에이전트를 MCP로 구현
 
 ## 시스템 요구사항
 - Python 3.11 이상
@@ -13,25 +11,17 @@ Account 조회, 요약, 업데이트 기능을 갖춘 KSS 에이전트를 MCP로
 ```bash
 # 가상환경 생성
 python -m venv venv
-
 # 가상환경 활성화
-# Windows
 .\venv\Scripts\activate
 ```
 
 ### 패키지 설치
 ```bash
-# 필수 패키지 설치
 pip install -r requirements.txt
 ```
 # 실행 예시 코드
 streamlit run mcp_main.py
 ```
-
-## 주요 기능
-- 기능 1: [설명]
-- 기능 2: [설명]
-- 기능 3: [설명]
 
 ## 프로젝트 구조
 ```
@@ -49,6 +39,7 @@ MCP/
 (예: 프로젝트 폴더가 `C:\projects\test\python_mcp_agent`인 경우)
 
 > **주의:** Windows에서는 JSON 문법상 `\` 대신 `\\` (역슬래시 두 번)을 사용해야 합니다.
+
 ```json
 {
   "mcpServers": {
@@ -70,7 +61,6 @@ MCP/
     }   
   }
 }
-
 ```
 
 
