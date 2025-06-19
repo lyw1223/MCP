@@ -1,20 +1,10 @@
 {
-  "mcpServers": {
-    
-    "mcp-test": {
-      "command": "C:\\Users\\lyw1223\\Desktop\\mcp_account\\venv\\Scripts\\python.exe",
-      "args": [
-        "C:\\Users\\lyw1223\\Desktop\\mcp_account\\mcp_scripts.py"
-      ]
-    }, 
-       
-    "filesystem": {
-      "command": "npx",
-      "args": [
-        "-y",
-        "@modelcontextprotocol/server-filesystem",
-        "C:\\Users\\lyw1223\\Desktop\\mcp_account"
-      ]
-    }   
-  }
+    "mcpServers": {
+      "mcp-kss": {
+        "command": "C:\\Users\\AsherLim-230703\\Desktop\\mcp\\venv\\Scripts\\python.exe",
+        "args": [
+          "C:\\Users\\AsherLim-230703\\Desktop\\mcp\\mcp_scripts.py"
+        ]
+      }
+    }
 }

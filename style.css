@@ -1,7 +1,17 @@
 /* 전체 배경색 및 폰트 */
 .stApp {
-    background: linear-gradient(135deg, #f8fafc 0%, #e0e7ef 100%);
     font-family: 'Segoe UI', 'Malgun Gothic', Arial, sans-serif;
+}
+
+/* 기본(라이트) 테마 */
+html[data-theme="light"] .stApp {
+    background: linear-gradient(135deg, #f8fafc 0%, #e0e7ef 100%);
+    color: #222;
+}
+
+html[data-theme="dark"] .stApp {
+    background: linear-gradient(135deg, #23272f 0%, #181c22 100%);
+    color: #f5f5f5;
 }
 
 /* 채팅 메시지 버블 스타일 */
@@ -13,34 +23,53 @@
 }
 
 /* 사용자 메시지 */
-[data-testid="stChatMessage"]:has(.stMarkdown) {
+html[data-theme="light"] [data-testid="stChatMessage"]:has(.stMarkdown) {
     background: #e3f2fd;
     color: #222;
     align-self: flex-end;
 }
+html[data-theme="dark"] [data-testid="stChatMessage"]:has(.stMarkdown) {
+    background: #2a3950;
+    color: #f5f5f5;
+}
 
 /* 어시스턴트 메시지 */
-[data-testid="stChatMessage"]:not(:has(.stMarkdown)) {
+html[data-theme="light"] [data-testid="stChatMessage"]:not(:has(.stMarkdown)) {
     background: #fff;
     color: #222;
     align-self: flex-start;
 }
+html[data-theme="dark"] [data-testid="stChatMessage"]:not(:has(.stMarkdown)) {
+    background: #23272f;
+    color: #f5f5f5;
+}
 
 /* 타이틀 스타일 */
-h1, .stTitle {
+html[data-theme="light"] h1, html[data-theme="light"] .stTitle {
     color: #2b3a55;
     font-weight: 700;
     letter-spacing: 1px;
 }
+html[data-theme="dark"] h1, html[data-theme="dark"] .stTitle {
+    color: #90caf9;
+}
 
 /* 사이드바 스타일 */
-.stSidebar {
+html[data-theme="light"] .stSidebar {
     background: #f1f5fa;
+}
+html[data-theme="dark"] .stSidebar {
+    background: #23272f;
 }
 
 /* 입력창 스타일 */
-.stChatInputContainer {
+html[data-theme="light"] .stChatInputContainer {
     background: #f8fafc;
     border-radius: 12px;
     box-shadow: 0 1px 4px rgba(0,0,0,0.03);
+    color: #222;
+}
+html[data-theme="dark"] .stChatInputContainer {
+    background: #23272f;
+    color: #f5f5f5;
 } 

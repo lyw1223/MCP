@@ -7,8 +7,15 @@ from agents import Agent, Runner
 from agents.mcp import MCPServerStdio
 from dotenv import load_dotenv
 import os
+import openai
+import time
+import undetected_chromedriver as uc
+from selenium.webdriver.common.by import By
+from dotenv import load_dotenv
 load_dotenv()
+openai.api_key = os.getenv("OPENAI_API_KEY")
 
+    
 # Windows 호환성오류 방지
 if sys.platform == "win32":
     asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
@@ -21,6 +28,7 @@ async def setup_mcp_servers():
     with open('mcp.json', 'r') as f:
         config = json.load(f)
     
+
     # 구성된 MCP 서버들을 순회
     for server_name, server_config in config.get('mcpServers', {}).items():
         mcp_server = MCPServerStdio(
@@ -28,13 +36,12 @@ async def setup_mcp_servers():
                 "command": server_config.get("command"),
                 "args": server_config.get("args", [])
             },
-            cache_tools_list=True
+            cache_tools_list=True,
+            client_session_timeout_seconds= int(os.getenv("MCP_DELAY"))            
         )
         await mcp_server.connect()
-        servers.append(mcp_server)
-
+        servers.append(mcp_server)            
     return servers
-
 
 # 에이전트 설정
 async def setup_agent():
@@ -43,7 +50,7 @@ async def setup_agent():
     
     agent = Agent(
         name="Assistant",
-        instructions="너는 KSS 작업을 도와주는 에이전트야",
+        instructions=open('instructions.txt', 'r', encoding='utf-8').read(),
         model= os.getenv("OPENAI_MODEL"),
         mcp_servers= mcp_servers
     )
@@ -87,7 +94,7 @@ async def process_user_message():
         await server.__aexit__(None, None, None)
 
 # Streamlit UI 메인
-def main():
+def main():        
     st.set_page_config(page_title="KSS 에이전트", page_icon="🔷")
 
     # style.css 적용

@@ -1,160 +1,80 @@
 from mcp.server.fastmcp import FastMCP
-from youtube_transcript_api import YouTubeTranscriptApi
-import xml.etree.ElementTree as ET
-from datetime import datetime
+from selenium.webdriver.common.by import By
+import time
 import requests
-import re
+from typing import Optional, Any
 from dotenv import load_dotenv
+import psutil
 import os
+import undetected_chromedriver as uc
+from datetime import datetime
+import json
 load_dotenv()
-YOUTUBE_API_URL = 'https://www.googleapis.com/youtube/v3'
-YOUTUBE_API_KEY = os.getenv("YOUTUBE_API_KEY")
-
-KSS_ID = os.getenv("KSS_ID")
-KSS_PW = os.getenv("KSS_PW")
+mcp = FastMCP("kss_agent_server")
 KSS_SERVER = os.getenv("KSS_SERVER")
 
-# Create an MCP server
-mcp = FastMCP("kss_agent_server")
-
-### Tool 1 : KSS 계정 조회
+class KSS_Request():
+    def __init__(self):
+        with open('headers.json', encoding='utf-8') as f:
+            self.headers = json.load(f)
+        with open('cookies.json', encoding='utf-8') as f:
+            self.cookies = json.load(f)
+                
+        if KSS_SERVER == '2':
+            self.server = 'https://kssdev.surplusglobal.com/KSS'            
+        elif KSS_SERVER == '1':
+            self.server = 'https://zpdldptmdptm.surplusglobal.com/KSS'            
+        else:
+            raise Exception('KSS_SERVER 값이 올바르지 않습니다. 1 또는 2를 입력해주세요.')
+              
+                   
+### Tool 1 : KSS 계정 코멘트 작성
 @mcp.tool()
-def get_kss_account(url: str) -> str:
-    """ KSS 계정 조회"""    
-    # 1. 유튜브 URL에서 비디오 ID를 추출합니다.
-    video_id_match = re.search(r"(?:v=|\/)([0-9A-Za-z_-]{11}).*", url)
-    if not video_id_match:
-        raise ValueError("유효하지 않은 YouTube URL이 제공되었습니다")
-    video_id = video_id_match.group(1)
+def kss_comment_write(person_id: str, txt: str, date: str = datetime.now().strftime("%Y%m%d"), wtime: str = '00:00') -> dict[str, Any]:
+    """KSS Account에 코멘트를 작성합니다.         
+    Args:
+        person_id: A142340 형식) #앞에 A가 붙어야함
+        txt: 작성할 코멘트 내용
+        date: 코멘트 날짜 (yyyymmdd 형식, 기본값:오늘 날짜)
+        wtime: 작성 시간 (HH:MM 형식, 기본값 00:00)
+    """      
+    kss_request = KSS_Request()
+    data = f'accid={person_id}&newsyn=N&gbn=I&comment={txt}&validdt={date} {wtime}&cmtDataSrcVal={person_id}&cmtDataSrcType=PERSON_ID'
     
-    languages = ["ko", "en"]
-    # 2. youtube_transcript_api를 사용하여 자막을 가져옵니다.
     try:
-        transcript_list = YouTubeTranscriptApi.get_transcript(video_id, languages=languages)
-        
-        # 3. 자막 목록의 'text' 부분을 하나의 문자열로 결합합니다.
-        transcript_text = " ".join([entry["text"] for entry in transcript_list])
-        return transcript_text
-
+        response = requests.post(
+            f'{kss_request.server}/AC0140PCmtSave.do',
+            headers=kss_request.headers,
+            cookies=kss_request.cookies,            
+            data=data,
+            timeout=int(os.getenv("MCP_DELAY"))  # 타임아웃 설정
+        )
+        if response.status_code == 200: 
+            return {'result': '코멘트 작성 성공'}
+        else: 
+            return {'result': f'코멘트 작성 실패 (상태 코드: {response.status_code})'}
     except Exception as e:
-        raise RuntimeError(f"비디오 ID '{video_id}'에 대한 자막을 찾을 수 없거나 사용할 수 없습니다.{e}")
-
-
-### Tool 2 : 유튜브에서 특정 키워드로 동영상을 검색하고 세부 정보를 가져옵니다
-@mcp.tool()
-def search_youtube_videos(query: str) -> dict:
-    """유튜브에서 특정 키워드로 동영상을 검색하고 세부 정보를 가져옵니다"""
-    try:
-        # 1. 동영상 검색
-        max_results: int = 20
-        search_url = f"{YOUTUBE_API_URL}/search?part=snippet&q={requests.utils.quote(query)}&type=video&maxResults={max_results}&key={YOUTUBE_API_KEY}"
-        print(f"Searching YouTube with URL: {search_url}")
-
-        search_response = requests.get(search_url)
-        search_data = search_response.json()
-        video_ids = [item['id']['videoId'] for item in search_data.get('items', [])]
-
-        if not video_ids:
-            print("No videos found for the query.")
-            return []
-
-        video_details_url = f"{YOUTUBE_API_URL}/videos?part=snippet,statistics&id={','.join(video_ids)}&key={YOUTUBE_API_KEY}"
-        print(f"영상 정보 가져오는 중: {video_details_url}")
-        details_response = requests.get(video_details_url)
-        details_response.raise_for_status()
-        details_data = details_response.json()
-
-        videos = []
-        for item in details_data.get('items', []):
-            snippet = item.get('snippet', {})
-            statistics = item.get('statistics', {})
-            thumbnails = snippet.get('thumbnails', {})
-            high_thumbnail = thumbnails.get('high', {}) 
-            view_count = statistics.get('viewCount')
-            like_count = statistics.get('likeCount')
-
-            video_card = {
-                "title": snippet.get('title', 'N/A'),
-                "publishedDate": snippet.get('publishedAt', ''),
-                "channelName": snippet.get('channelTitle', 'N/A'),
-                "channelId": snippet.get('channelId', ''),
-                "thumbnailUrl": high_thumbnail.get('url', ''),
-                "viewCount": int(view_count) if view_count is not None else None,
-                "likeCount": int(like_count) if like_count is not None else None,
-                "url": f"https://www.youtube.com/watch?v={item.get('id', '')}",
-            }
-            videos.append(video_card)
-
-        if not videos:
-            print("No video details could be fetched.")
-            return []
-
-        return videos
-
-    except Exception as e:
-        print(f"Error: {e}")
-        return []
+        return {'error': f'요청 중 오류 발생: {str(e)}'}
     
 
-### Tool 3 : YouTube 동영상 URL로부터 채널 정보와 최근 5개의 동영상을 가져옵니다
-@mcp.tool()
-def get_channel_info(video_url: str) -> dict:
-    """YouTube 동영상 URL로부터 채널 정보와 최근 5개의 동영상을 가져옵니다"""
-    def extract_video_id(url):
-        match = re.search(r"(?:v=|\/)([0-9A-Za-z_-]{11})", url)
-        return match.group(1) if match else None
+def kss_account_query(person_id: str) -> dict[str, Any]:
+    """KSS Account을 조회합니다.         
+    Args:
+        person_id: A142340 형식) #앞에 A가 붙어야함
+    """
+    kss_request = KSS_Request()
+    response = requests.get(f'{kss_request.server}/AC0180MSearchAll.do', headers=kss_request.headers, cookies=kss_request.cookies, params={'queryDetail1': person_id,'type1':'ACCOUNT_ID/1'})
+    if response.status_code == 200:
+        data = {}
+        result = response.json()['Data'][0]
+        data['name'] = result['name']
 
-    def fetch_recent_videos(channel_id):
-        rss_url = f"https://www.youtube.com/feeds/videos.xml?channel_id={channel_id}"
-        try:
-            response = requests.get(rss_url)
-            if response.status_code != 200:
-                return []
+        return {'result': data}
+    else:
+        return {'error': f'요청 중 오류 발생: {response.status_code}'}
 
-            root = ET.fromstring(response.text)
-            ns = {'atom': 'http://www.w3.org/2005/Atom'}
-            videos = []
-
-            for entry in root.findall('.//atom:entry', ns)[:5]:  
-                title = entry.find('./atom:title', ns).text
-                link = entry.find('./atom:link', ns).attrib['href']
-                published = entry.find('./atom:published', ns).text
-                videos.append({
-                    'title': title,
-                    'link': link,
-                    'published': published,
-                    'updatedDate': datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                })
-
-            return videos
-        except:
-            return []
-
-    video_id = extract_video_id(video_url)
-    if not video_id:
-        raise ValueError("Invalid YouTube URL")
-
-    video_api = f"{YOUTUBE_API_URL}/videos?part=snippet,statistics&id={video_id}&key={YOUTUBE_API_KEY}"
-    video_data = requests.get(video_api).json()
-    if not video_data.get('items'):
-        raise ValueError("No video found")
-
-    video_info = video_data['items'][0]
-    channel_id = video_info['snippet']['channelId']
-
-    channel_api = f"{YOUTUBE_API_URL}/channels?part=snippet,statistics&id={channel_id}&key={YOUTUBE_API_KEY}"
-    channel_data = requests.get(channel_api).json()['items'][0]
-
-    return {
-        'channelTitle': channel_data['snippet']['title'],
-        'channelUrl': f"https://www.youtube.com/channel/{channel_id}",
-        'subscriberCount': channel_data['statistics'].get('subscriberCount', '0'),
-        'viewCount': channel_data['statistics'].get('viewCount', '0'),
-        'videoCount': channel_data['statistics'].get('videoCount', '0'),
-        'videos': fetch_recent_videos(channel_id)
-    }
-
-
-if __name__ == "__main__":
-    print("Starting MCP server...")
-    mcp.run()
+if __name__ == "__main__":   
+    # print("Starting MCP server...")
+    # mcp.run()
+    # kss_comment_write(person_id='A142233', txt='test', date='20250618', wtime='00:00')
+    kss_account_query(person_id='A142233')
