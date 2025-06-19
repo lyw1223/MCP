@@ -1,4 +1,4 @@
-# MCP Agent 
+# KSS MCP Server
 Account 조회, 요약, 업데이트 기능을 갖춘 KSS 에이전트를 MCP로 구현
 
 
@@ -21,15 +21,16 @@ MCP_Project
 - pip install mcp openai-agents streamlit python-dotenv requests fastmcp undetected_chromedriver psutil
 
 3. env 파일 설정
-    KSS_ID = KSSID_입력
-    KSS_PW = KSSPW_입력
-    KSS_SERVER = 1: Main 2: Dev
-    OPENAI_API_KEY= api키_입력
-    OPENAI_MODEL= 사용모델_입력
-    MCP_DELAY = MCP 작업 대기시간설정
+- KSS_ID = KSSID_입력
+- KSS_PW = KSSPW_입력
+- KSS_SERVER = 1: Main 2: Dev
+- OPENAI_API_KEY= api키_입력
+- OPENAI_MODEL= 사용모델_입력
+- MCP_DELAY = MCP 작업 대기시간설정
 
 4. MCP 경로 구성 / 서버 실행에 필요한 **Python 실행 파일 경로**와 **MCP 서버(.py) 스크립트 경로**를 JSON 설정에 입력해야 합니다.
 (예: 프로젝트 폴더가 `C:\projects\test\python_mcp_agent`인 경우)
+
 > **주의:** Windows에서는 JSON 문법상 `\` 대신 `\\` (역슬래시 두 번)을 사용해야 합니다.
 ```json
 {
