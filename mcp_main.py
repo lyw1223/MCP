@@ -36,7 +36,8 @@ async def setup_mcp_servers():
         mcp_server = MCPServerStdio(
             params={
                 "command": server_config.get("command"),
-                "args": server_config.get("args", [])
+                "args": server_config.get("args", []),
+                "env": os.environ
             },
             cache_tools_list=True,
             client_session_timeout_seconds= int(os.getenv("MCP_DELAY"))            
