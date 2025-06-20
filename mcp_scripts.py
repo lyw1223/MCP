@@ -70,9 +70,9 @@ class KSS_Request():
             raise
         
         # KSS api 서버 url 설정
-        if KSS_SERVER == '1':
+        if str(KSS_SERVER) == '1':
             self.server = 'https://zpdldptmdptm.surplusglobal.com/KSS'            
-        elif KSS_SERVER == '2':
+        elif str(KSS_SERVER) == '2':
             self.server = 'https://kssdev.surplusglobal.com/KSS'            
         else:
             raise Exception('KSS_SERVER 값이 올바르지 않습니다. 1 또는 2를 입력해주세요.')                      
