@@ -1,0 +1,21 @@
+{
+    "mcpServers": {
+      
+      "mcp-kss": {
+        "command": "C:\\Users\\lyw1223\\Documents\\GitHub\\MCP\\venv\\Scripts\\python.exe",
+        "args": [
+          "C:\\Users\\lyw1223\\Documents\\GitHub\\MCP\\mcp_scripts.py"
+        ]
+      }, 
+         
+      "filesystem": {
+        "command": "npx",
+        "args": [
+          "-y",
+          "@modelcontextprotocol/server-filesystem",
+          "C:\\Users\\lyw1223\\Documents\\GitHub\\MCP"
+        ]
+      }   
+    }
+  }
+  
