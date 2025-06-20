@@ -10,6 +10,7 @@ import os
 import openai
 import base64
 
+
 load_dotenv()
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
@@ -26,6 +27,9 @@ async def setup_mcp_servers():
     with open('mcp.json', 'r') as f:
         config = json.load(f)
     
+    # mcp-kss 서버의 파이썬 경로를 현재 실행중인 파이썬으로 지정
+    if 'mcp-kss' in config.get('mcpServers', {}):
+        config['mcpServers']['mcp-kss']['command'] = sys.executable
 
     # 구성된 MCP 서버들을 순회
     for server_name, server_config in config.get('mcpServers', {}).items():
