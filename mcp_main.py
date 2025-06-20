@@ -100,7 +100,7 @@ async def process_user_message():
 
 # Streamlit UI 메인
 def main():        
-    st.set_page_config(page_icon="🔷")
+    st.set_page_config(page_title="KSS Agent", page_icon="🔷")
 
     # style.css 적용
     with open("style.css",encoding="utf-8") as f:
