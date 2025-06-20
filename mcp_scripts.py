@@ -6,15 +6,15 @@ import os
 from datetime import datetime
 import json
 import logging
-from logging.handlers import RotatingFileHandler
+from pprint import pprint
+import re
+load_dotenv()
 
 # 로그 설정
 def setup_logging(name: str) -> logging.Logger:
     """ 로그 설정
         - logs 디렉토리에 자동 저장
-        - 날짜별 로그 파일 생성
-        - 파일당 최대 10MB
-        - 최대 5개의 백업 파일 유지
+        - 단일 로그 파일 사용
         - UTF-8 인코딩
     """
     # 로그 디렉토리 생성
@@ -28,10 +28,8 @@ def setup_logging(name: str) -> logging.Logger:
     # 핸들러가 중복 추가되는 것을 방지
     if not logger.handlers:
         # 파일 핸들러 설정
-        file_handler = RotatingFileHandler(
-            filename=f'logs/logs_{datetime.now().strftime("%Y%m%d")}.log',
-            maxBytes=10*1024*1024,  # 10MB
-            backupCount=5,
+        file_handler = logging.FileHandler(
+            filename='logs/mcp.log',
             encoding='utf-8'
         )
         file_handler.setFormatter(logging.Formatter('%(asctime)s %(levelname)s %(message)s', 
@@ -45,11 +43,20 @@ def setup_logging(name: str) -> logging.Logger:
     
     return logger
 
-load_dotenv()
+def clean_html_tags(text: str) -> str:
+        """HTML 태그와 폰트 태그를 제거하고 깔끔한 텍스트만 반환"""
+        if not text:
+            return ''
+        # HTML 태그 제거
+        clean_text = re.sub(r'<[^>]+>', '', text)
+        # 여러 공백을 하나로 정리
+        clean_text = re.sub(r'\s+', ' ', clean_text).strip()
+        return clean_text
+
+# MCP 서버 설정
 mcp = FastMCP("kss_agent_server")
 KSS_SERVER = os.getenv("KSS_SERVER")
 logger = setup_logging(__name__)
-
 class KSS_Request():
     def __init__(self):
         # 헤더 및 쿠키 파일 로드
@@ -68,15 +75,14 @@ class KSS_Request():
         elif KSS_SERVER == '2':
             self.server = 'https://kssdev.surplusglobal.com/KSS'            
         else:
-            raise Exception('KSS_SERVER 값이 올바르지 않습니다. 1 또는 2를 입력해주세요.')        
-              
+            raise Exception('KSS_SERVER 값이 올바르지 않습니다. 1 또는 2를 입력해주세요.')                      
 kss_request = KSS_Request()
 
 
-### Tool 1-1 : (Person ID) 조회
+### Tool 1-1 : (Person ID) Person 상세정보 조회
 @mcp.tool()
-def kss_account_query_person_id(person_id: str) -> dict[str, Any]:    
-    """Person ID를 입력하면, 해당 어카운트 상세정보를 조회합니다.         
+def kss_account_info_get(person_id: str) -> dict[str, Any]:    
+    """KSS Account에 등록된 어카운트 상세정보를 조회합니다.             
     Args:
         person_id: A로 시작하는 어카운트 ID (ex: A142340)                
     """    
@@ -106,69 +112,49 @@ def kss_account_query_person_id(person_id: str) -> dict[str, Any]:
         logger.error(f'MCP - Person ID 조회 오류: {str(e)}')
         return {'error': f'요청 중 오류 발생: {str(e)}'}
 
-### Tool 1-2 : KSS 어카운트(name, company) 조회
+### Tool 1-2 : (Company ID) Company 상세정보 조회
 @mcp.tool()
-def kss_account_query_name_company(name: str, company: str = '') -> dict[str, Any]:    
-    """
-    name, company를 입력하면, KSS 어카운트 검색 결과를 조회합니다.
-    동명이인이 있을수 있으므로, 사용자가 식별하기 좋게 보여줍니다.    
-
+def kss_company_info_get(company_id: str) -> dict[str, Any]:
+    """KSS Company에 등록된 회사 정보를 조회합니다 반환값에 person_id 가 있습니다..             
     Args:
-        name: 이름 (필수)
-        company: 회사명 (선택 - 입력하면 해당 회사 소속만 검색, 입력하지 않으면 전체 검색됨)
-               회사명은 영어로 입력 필요.          
-    example:
-        예상 질문과 AI 응답:
-        사용자: "홍길동씨 찾아줘"
-        AI: "회사명을 아시면 더 정확한 검색이 가능합니다. 회사명을 알고 계신가요?"
-        
-        사용자: "삼성전자 홍길동씨 찾아줘"
-        AI: name='홍길동', company='Samsung' 으로 바로 검색 실행
-        
-        사용자: "홍길동씨 찾아줘, 회사는 모르겠어"
-        AI: name='홍길동', company='' 으로 전체 검색 실행
-    
-    Note:
-        오류가 발생했을 경우 어떤 오류인지 확인하기 위해 오류 메시지를 출력합니다.
-    """
-    logger.info(f'MCP - 어카운트(name, company) 조회 요청: {name}, {company}')
+        company_id: 회사 ID (ex: C12345)                
+    """    
+    logger.info(f'MCP - 회사 조회 요청: {company_id}')
     try:
         response = requests.get(
             f'{kss_request.server}/AC0180MSearchAll.do',
             headers=kss_request.headers,
             cookies=kss_request.cookies,
-            params={
-                'type1': 'ACCOUNT_NM/3^ACCOUNT_LOCAL_NM/3^ACCOUNT_NICK_NM/3',
-                'queryDetail1': name,
-                'type2': 'COMPNM/3^COMP_LOCAL_NM/3^COMP_NICK_NM/3^COMP_ALIAS/3^NOT_PRIMARY_COMP_ALIAS/3',
-                'queryDetail2': company,
-                'viewResultCount': '100',
-            }
-        )           
-        data = []
+            params={'queryDetail1': company_id,'type1':'COMPID/1','queryDetail2':'Company Info','type2':'ACCOUNT_NM/3'},
+        )
+        data = {}
         results = response.json()['Data']
         for result in results:
-            data.append({
-                'person_id': result.get('personid', ''),
-                'company': result.get('compnm', ''),
-                'company_id': result.get('compid', ''),                
-                'name': result.get('personnmdesc', ''),                
-                'position': result.get('positionNm', ''),              
-                'country': result.get('countryNm', ''),              
-                'account_manager': result.get('am', '')
-            })   
-        return {'result': data}
+            if result['personnmdesc'] =='Company Info' and result['compid'] == company_id.upper():                
+                data['company_id'] = result.get('compid', '')
+                data['company_name'] = result.get('compnm', '')
+                data['url'] = result.get('urladdr1', '')        
+                data['tel1'] = result.get('tel1', '')
+                data['tel2'] = result.get('tel2', '')
+                
+                data['email'] = result.get('email1', '')
+                data['country'] = result.get('country', '')
+                data['address'] = result.get('address', '')
+                data['comment'] = clean_html_tags(result.get('cmtDesc', ''))
+                data['account_manager'] = result.get('am', '')
+                data['CompanyInfoId'] = result.get('id', '')
+                return {'result': data}
+        return {'error': '회사 정보를 찾을 수 없습니다.'}
     except Exception as e:
-        logger.error(f'MCP - 어카운트(name, company) 조회 오류: {str(e)}')
+        logger.error(f'MCP - Company ID 조회 오류: {str(e)}')
         return {'error': f'요청 중 오류 발생: {str(e)}'}
 
 
 
 
-
-### Tool 1 : KSS 어카운트 코멘트 작성
+### Tool 1-2 : (Person ID) 어카운트 코멘트 생성
 @mcp.tool()
-def kss_comment_write(person_id: str, txt: str, date: str = datetime.now().strftime("%Y%m%d"), wtime: str = datetime.now().strftime('%H:%M')) -> dict[str, Any]:
+def kss_account_comment_post(person_id: str, txt: str, date: str = datetime.now().strftime("%Y%m%d"), wtime: str = datetime.now().strftime('%H:%M')) -> dict[str, Any]:
     """KSS Account에 코멘트를 작성합니다.         
     Args:
         person_id: A142340 형식) #앞에 A가 붙어야함
@@ -194,13 +180,214 @@ def kss_comment_write(person_id: str, txt: str, date: str = datetime.now().strft
     except Exception as e:
         logger.error(f'MCP - 어카운트 코멘트 작성 오류: {str(e)}')
         return {'error': f'요청 중 오류 발생: {str(e)}'}
+
+
+### Tool 1-3 : (Person ID) 어카운트 정보 업데이트
+@mcp.tool()
+def kss_account_info_update(person_id: str,
+                            company: str = '',
+                            name: str = '',
+                            position: str = '',
+                            country: str = '',
+                            account_manager: str = '',
+                            url: str = '',
+                            mobile: str = '',
+                            email: str = '',
+                            comment: str = '',
+                            ) -> dict[str, Any]:
+    """KSS Account에 어카운트 정보를 업데이트합니다.         
+    Args:
+        person_id: A142340 형식) #앞에 A가 붙어야함
+        company: 회사명
+        name: 이름
+        position: 직책
+        country: 국가
+        account_manager: 어카운트 매니저
+        url: 웹사이트
+        mobile: 전화번호
+        email: 이메일
+        comment: 코멘트
+    """          
+    logger.info(f'MCP - 어카운트 정보 업데이트 요청: {person_id}')
     
+    try:
+        # 기존 정보 조회 먼저
+        existing_info_response = kss_account_info_get(person_id)
+        if 'error' in existing_info_response:
+            return {'error': f'기존 정보 조회 실패: {existing_info_response["error"]}'}
+        
+        existing_info = existing_info_response['result']
+        
+        # 업데이트할 데이터 구성 (기존 정보 + 새로운 정보)
+        data = {
+            'account': person_id,
+            # 'copyYn': 'N',
+            # 'newsyn': 'N',
+            # 'useyn': 'Y',
+            # 'rankRadio': 'C',
+            # 'gender': 'MR',
+            # 'acc_comp_gubun': 'ACC',
+            
+            # 회사 정보
+            # 'repCompNm': company if company else existing_info.get('company', ''),
+            # 'regcompnm12': company if company else existing_info.get('company', ''),
+            
+            # 개인 정보
+            'accnm': name if name else existing_info.get('name', ''),
+            'position': position if position else existing_info.get('position', ''),
+            'amuserid': account_manager if account_manager else existing_info.get('account_manager', ''),
+            'webSite': url if url else existing_info.get('url', ''),
+            'keyword': comment if comment else existing_info.get('comment', ''),
+            
+            # 연락처 정보
+            'mobile': mobile if mobile else existing_info.get('mobile', ''),
+            'mobileType': 'CP',
+            'mobilecheck': 'VALID',
+            'email': email if email else existing_info.get('email', ''),
+            'emailcheck': 'VALID',
+            'emailtm': 'on',
+            'primaryYn': 'on',
+            
+            # 주소/국가 정보
+            # 'countryNm': country if country else existing_info.get('country', ''),
+            
+            # 기타 필수 필드들
+            # 'department': 'CEM',
+            # 'tmYn': 'Y',
+            # 'rmYn': 'N',
+            # 'emYn': 'N',
+            # 'umYn': 'N',
+        }
+
+        response = requests.post(
+            f'{kss_request.server}/AC0140PAccountSave.do',
+            cookies=kss_request.cookies,
+            headers=kss_request.headers,
+            data=data,
+            timeout=int(os.getenv("MCP_DELAY"))
+        )
+        
+        if response.status_code == 200:
+            logger.info(f'MCP - 어카운트 정보 업데이트 성공: {person_id}')
+            return {'result': '어카운트 정보 업데이트 성공'}
+        else:
+            logger.error(f'MCP - 어카운트 정보 업데이트 실패: {person_id}, 상태코드: {response.status_code}')
+            return {'error': f'업데이트 실패 (상태 코드: {response.status_code})'}
+            
+    except Exception as e:
+        logger.error(f'MCP - 어카운트 정보 업데이트 오류: {str(e)}')
+        return {'error': f'요청 중 오류 발생: {str(e)}'}
+
+
+### Tool 2-1 : (name, company) 어카운트 검색
+@mcp.tool()
+def kss_account_query_name_company(name: str, company: str = '') -> dict[str, Any]:    
+    """
+    name, company를 입력하면, KSS 어카운트 검색 결과를 조회합니다.
+    등록된 계정이 있을경우 번호. 이름 - 회사 - 어카운트  Person ID 으로 보여줍니다.    
+
+    Args:
+        name: 이름 (필수)
+        company: 회사명 (선택 - 입력하면 해당 회사 소속만 검색, 입력하지 않으면 전체 검색됨)
+               회사명은 영어로 입력 필요.          
+    example:
+        예상 질문과 AI 응답:
+        사용자: "홍길동씨 찾아줘"
+        AI: "회사명을 아시면 더 정확한 검색이 가능합니다. 회사명을 알고 계신가요?"
+        
+        사용자: "삼성전자 홍길동씨 찾아줘"
+        AI: name='홍길동', company='Samsung' 으로 바로 검색 실행
+        
+        사용자: "홍길동씨 찾아줘, 회사는 모르겠어"
+        AI: name='홍길동', company='' 으로 전체 검색 실행
+    
+    Note:
+        검색결과가 없을경우  영어로 변경하여 검색할지 사용자에게 물어봅니다.
+    """
+    logger.info(f'MCP - 어카운트(name, company) 조회 요청: {name}, {company}')
+    
+    try:
+        response = requests.get(
+            f'{kss_request.server}/AC0180MSearchAll.do',
+            headers=kss_request.headers,
+            cookies=kss_request.cookies,
+            params={
+                'type1': 'ACCOUNT_NM/3^ACCOUNT_LOCAL_NM/3^ACCOUNT_NICK_NM/3',
+                'queryDetail1': name,
+                'type2': 'COMPNM/3^COMP_LOCAL_NM/3^COMP_NICK_NM/3^COMP_ALIAS/3^NOT_PRIMARY_COMP_ALIAS/3',
+                'queryDetail2': company,
+                'viewResultCount': '500',
+            }
+        )           
+        
+        try:
+            results = response.json()['Data'] 
+            data = []           
+        except Exception as e:       
+            return {'result': '검색 결과가 없습니다.'}
+        
+        for result in results:
+            if result['gubun'] == 'PERSON':
+                
+                data.append({
+                    'person_id': result.get('personid', ''),
+                    'company': clean_html_tags(result.get('compnm', '')),
+                    'company_id': result.get('compid', ''),                
+                    'name': result.get('personnmdesc', ''),                
+                    'position': result.get('positionNm', ''),              
+                    'country': result.get('countryNm', ''),              
+                    'account_manager': result.get('am', '')
+                })
+
+        return {'search_count': len(data),'result': data}
+    except Exception as e:
+        logger.error(f'MCP - 어카운트(name, company) 조회 오류: {str(e)}')
+        return {'error': f'요청 중 오류 발생: {str(e)}'}
+      
+### Tool 3-1 : 신규 어카운트 생성
+@mcp.tool()
+def kss_account_create(name: str = 'Unknown', mobile: str =None, email: str =None, company: str = '', position: str = '', country: str = '', account_manager: str = '', url: str = '', comment: str = '') -> dict[str, Any]:
+    """KSS Account에 신규 어카운트를 생성합니다.         
+    Args:
+        name: 이름
+        company: 회사명
+        position: 직책
+        country: 국가
+        account_manager: 어카운트 매니저
+        url: 웹사이트
+        mobile: 전화번호
+        email: 이메일
+        comment: 코멘트
+    """
+    logger.info(f'MCP - 신규 어카운트 생성 요청: {name}, {company}, {position}, {country}, {account_manager}, {url}, {mobile}, {email}, {comment}')
+    if mobile:
+        mobile_check = requests.post(f'{kss_request.server}/AC0140PMobileCheck.do',cookies=kss_request.cookies,headers=kss_request.headers,data={'mobile': mobile},)
+        if mobile_check.text =='"DUPLICATE"':
+            return {'error': '동일한 모바일 번호가 KSS 어카운트에 존재합니다.'}
+    if email:
+        email_check = requests.post(f'{kss_request.server}/AC0140PAutoCompleteEmail.do',cookies=kss_request.cookies,headers=kss_request.headers,data={'searchTerm': email},)
+        try:
+            result = email_check.json()
+            return {'error': f'이미 존재하는 이메일입니다. Person ID: {result[0]["id"]}'}            
+        except:
+            pass
+
+
+
+    return {'result': '이메일 체크 완료'}
+     
+        
+
+ 
+
+
+
+
 
 
 if __name__ == "__main__":   
     print("Starting MCP server...")
     mcp.run()
 
-    # kss_account_query_name_company(name='bruce')
-    # kss_comment_write(person_id='A142233', txt='test', date='20250618', wtime='00:00')
-    # kss_account_query(person_id='A142233')
+    # result = kss_company_info_get(company_id='c123')
+    # pprint(result)
