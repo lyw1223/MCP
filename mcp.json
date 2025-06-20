@@ -6,15 +6,6 @@
       "args": [
         "mcp_scripts.py"
       ]
-    }, 
-       
-    "filesystem": {
-      "command": "npx",
-      "args": [
-        "-y",
-        "@modelcontextprotocol/server-filesystem",
-        "."
-      ]
-    }   
+    }     
   }
 }
