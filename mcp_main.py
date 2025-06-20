@@ -128,21 +128,24 @@ def main():
         with st.chat_message(m["role"]):
             st.markdown(m["content"])
 
-    # 사용자 입력 처리
-    user_input = st.chat_input("오늘 어떤 도움을 드릴까요?")
+    # AI 사용 여부 확인 및 사용자 입력 처리
+    if os.getenv('AI_ENABLED', 'true').lower() == 'true':
+        if user_input := st.chat_input("오늘 어떤 도움을 드릴까요?"):
+            st.session_state.chat_history.append({"role": "user", "content": user_input})
+            with st.chat_message("user"):
+                st.markdown(user_input)
+            # 비동기 응답 처리
+            with st.spinner("AI가 답변을 작성 중입니다..."):
+                try:
+                    asyncio.run(process_user_message())
+                except openai.APIError as e:
+                    st.error(f"오류 발생: {e}")
+                except Exception as e:
+                    st.error(f"오류 발생: {e}")
+    else:
+        st.warning("현재 AI 기능이 비 활성화 된 상태입니다 ")
+        st.chat_input("AI 기능이 비 활성화되어 메시지를 보낼 수 없습니다. 관리자에게 문의하세요.", disabled=True)
 
-    if user_input:
-        st.session_state.chat_history.append({"role": "user", "content": user_input})
-        with st.chat_message("user"):
-            st.markdown(user_input)
-        # 비동기 응답 처리
-        with st.spinner("AI가 답변을 작성 중입니다..."):
-            try:
-                asyncio.run(process_user_message())
-            except openai.APIError as e:
-                st.error(f"오류 발생: {e}")
-            except Exception as e:
-                st.error(f"오류 발생: {e}")
 
 if __name__ == "__main__":
     main()
