@@ -14,6 +14,15 @@ import base64
 load_dotenv()
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
+# 이벤트 루프를 가져오거나 생성하는 함수
+def get_or_create_eventloop():
+    try:
+        return asyncio.get_running_loop()
+    except RuntimeError: # 'get_running_loop' fails if no loop is running
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        return asyncio.get_event_loop()
+
     
 # Windows 호환성오류 방지
 if sys.platform == "win32":
@@ -92,9 +101,9 @@ async def process_user_message():
             "role": "assistant",
             "content": response_text
         })
-        # 명시적 종료 (streamlit에서 비동기 처리 오류 방지)
-        for server in mcp_servers:
-            await server.__aexit__(None, None, None)
+        # 명시적 종료 (streamlit에서 비동기 처리 오류 방지) - 이 방식은 루프 충돌을 일으킬 수 있으므로 제거
+        # for server in mcp_servers:
+        #     await server.__aexit__(None, None, None)
     except asyncio.CancelledError:
         pass
 
@@ -129,7 +138,7 @@ def main():
             st.markdown(m["content"])
 
     # AI 사용 여부 확인 및 사용자 입력 처리
-    if os.getenv('AI_ENABLED', 'true').lower() == 'true':
+    if os.getenv('AI_ENABLED') == 'true':
         if user_input := st.chat_input("오늘 어떤 도움을 드릴까요?"):
             st.session_state.chat_history.append({"role": "user", "content": user_input})
             with st.chat_message("user"):
@@ -137,7 +146,8 @@ def main():
             # 비동기 응답 처리
             with st.spinner("AI가 답변을 작성 중입니다..."):
                 try:
-                    asyncio.run(process_user_message())
+                    loop = get_or_create_eventloop()
+                    loop.run_until_complete(process_user_message())
                 except openai.APIError as e:
                     st.error(f"오류 발생: {e}")
                 except Exception as e:
