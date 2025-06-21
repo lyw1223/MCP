@@ -1,6 +1,6 @@
 from mcp.server.fastmcp import FastMCP
 import requests
-from typing import Optional, Any
+from typing import Optional, Any, List, Dict
 from dotenv import load_dotenv
 import os
 from datetime import datetime
@@ -8,6 +8,7 @@ import json
 import logging
 from pprint import pprint
 import re
+import asyncio
 load_dotenv()
 
 # 로그 설정
@@ -182,7 +183,64 @@ def kss_account_comment_post(person_id: str, txt: str, date: str = datetime.now(
         return {'error': f'요청 중 오류 발생: {str(e)}'}
 
 
-### Tool 1-3 : (Person ID) 어카운트 정보 업데이트
+### Tool 1-2-1 : (Multiple Person IDs) 어카운트 코멘트 동시 생성
+async def _post_comment_async(person_id: str, txt: str, date: str, wtime: str) -> Dict[str, Any]:
+    """Helper to post a single comment using asyncio.to_thread to avoid blocking."""
+    try:
+        data = f'accid={person_id}&newsyn=N&gbn=I&comment={txt}&validdt={date} {wtime}&cmtDataSrcVal={person_id}&cmtDataSrcType=PERSON_ID'
+        
+        response = await asyncio.to_thread(
+            requests.post,
+            f'{kss_request.server}/AC0140PCmtSave.do',
+            headers=kss_request.headers,
+            cookies=kss_request.cookies,
+            data=data,
+            timeout=int(os.getenv("MCP_DELAY"))
+        )
+        
+        if response.status_code == 200:
+            logger.info(f'MCP - 어카운트 코멘트 작성 성공: {person_id}')
+            return {'person_id': person_id, 'status': 'success'}
+        else:
+            logger.error(f'MCP - 어카운트 코멘트 작성 실패: {person_id}, status_code: {response.status_code}')
+            return {'person_id': person_id, 'status': 'failed', 'error': f'status code {response.status_code}'}
+            
+    except Exception as e:
+        logger.error(f'MCP - 어카운트 코멘트 작성 오류: {person_id}, error: {str(e)}')
+        return {'person_id': person_id, 'status': 'failed', 'error': str(e)}
+@mcp.tool()
+async def kss_batch_account_comment_post(person_ids: List[str], txt: str) -> dict[str, Any]:
+    """KSS Account 여러 개에 대해 동일한 코멘트를 동시에 작성합니다.
+    
+    Args:
+        person_ids: A로 시작하는 어카운트 ID 리스트 (ex: ["A142340", "A142341"])
+        txt: 작성할 코멘트 내용
+    """
+    logger.info(f'MCP - 어카운트 코멘트 동시 작성 요청: {len(person_ids)}개')
+    
+    now = datetime.now()
+    date = now.strftime("%Y%m%d")
+    wtime = now.strftime('%H:%M')
+    
+    tasks = [_post_comment_async(pid, txt, date, wtime) for pid in person_ids]
+    results = await asyncio.gather(*tasks)
+    
+    successful_posts = [r for r in results if r['status'] == 'success']
+    failed_posts = [r for r in results if r['status'] == 'failed']
+    
+    summary = f"총 {len(person_ids)}개 중 {len(successful_posts)}개 성공, {len(failed_posts)}개 실패."
+    logger.info(f'MCP - 어카운트 코멘트 동시 작성 완료: {summary}')
+    
+    return {
+        '요약': summary,
+        '성공': [r['person_id'] for r in successful_posts],
+        '성공person_id': [r['person_id'] for r in successful_posts],
+        '실패': failed_posts,
+        '실패person_id': [r['person_id'] for r in failed_posts]
+    }
+
+
+### Tool 1-3 : (Person ID) 어카운트 정보 업데이트 (미완성)
 @mcp.tool()
 def kss_account_info_update(person_id: str,
                             company: str = '',
